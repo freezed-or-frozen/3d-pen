@@ -19,17 +19,19 @@
 // Librairies utilisées
 import React from 'react';
 import { Image, StyleSheet, Text, View, TextInput, Button, Alert } from 'react-native';
-import { Accelerometer } from 'expo';
+import { Accelerometer, Gyroscope, DangerZone } from 'expo';
+//import { DeviceMotion } from 'expo.DangerZone';
 
 
 // Classe de l'application
-export default class AccelerometerSensor extends React.Component {
+export default class MagicPencil extends React.Component {
 
     constructor(props) {
         super(props);
 
         this.state = {
-            accelerometerData: {},
+            acceleration: {},
+            rotation: {},
             ipAddress: '192.168.0.11',
             connected: false,
             sendingData: false,
@@ -45,7 +47,7 @@ export default class AccelerometerSensor extends React.Component {
     componentDidMount() {
         console.log("=== componentDidMount ===");
         this._subscribe();
-        Accelerometer.setUpdateInterval(200);  // 16 avant
+        DangerZone.DeviceMotion.setUpdateInterval(200);
     }
 
     componentWillUnmount() {
@@ -54,8 +56,15 @@ export default class AccelerometerSensor extends React.Component {
     }
 
     _subscribe = () => {
-        this._subscription = Accelerometer.addListener(accelerometerData => {
-            this.setState({ accelerometerData });
+        this._subscription = DangerZone.DeviceMotion.addListener( (motionData) => {
+            // Update motionData state
+            this.setState({
+                acceleration: motionData.acceleration,
+                rotation: motionData.rotation
+            });
+            //console.log(motionData);
+
+            // Send it if we are connected
             if (this.state.connected == true) {
                 this._sendAccelerometerData();
             }
@@ -63,15 +72,13 @@ export default class AccelerometerSensor extends React.Component {
     }
 
     _unsubscribe = () => {
-        this._subscription && this._subscription.remove();
+        this._subscription && this._subscription.removeAllListeners();
         this._subscription = null;
     }
 
     _onStartSendingData = () => {
-        //Alert.alert('Envoi => ' + this.state.ipAddress);
         this.webSocket = new WebSocket('ws://' + this.state.ipAddress + ':1664/3dpen');
         this.webSocket.onopen = () => {
-            //this.webSocket.send("CONNECTED\n");
             console.log('=== Connected:true ===\n');
             this.setState({connected: true});
         };
@@ -80,7 +87,8 @@ export default class AccelerometerSensor extends React.Component {
             // connection closed
             this.setState({connected: false});
             console.log('=== Connected:false ===\n');
-            console.log(e.code, e.reason);
+            console.log('  + code   : ' + e.code);
+            console.log('  + reason : ' + e.reason);
         };
 
         this.setState({sendingData: true});
@@ -89,34 +97,42 @@ export default class AccelerometerSensor extends React.Component {
 
 
     _onStopSendingData = () => {
-        //Accelerometer.setUpdateInterval(200);  // 16 avant
-        //Alert.alert('Arrêt => ' + this.state.ipAddress);
         this.setState({connected: false});
-        //console.log('=== STOP sending accelerometers data ===\n');
+        console.log('=== STOP sending accelerometers data ===\n');
     }
 
 
+
     _sendAccelerometerData = () => {
-        let { x, y, z } = this.state.accelerometerData;
+        // Grab data in variables
+        let { x, y, z } = this.state.acceleration;
+        let { alpha, beta, gamma } = this.state.rotation;
+
+        // Get the time
         var milliseconds = (new Date).getTime();
+
+        // Send it
         if ((this.webSocket != null) && (this.state.connected == true)) {
-            this.webSocket.send(x + ';' + y + ";" + z + ";" + this.state.function1 + ";" + this.state.function2 + ";" + this.state.function3 + ";" + this.state.function4 + ";" + milliseconds + "\n");
+            this.webSocket.send(x + ';' + y + ";" + z + ";" + alpha + ';' + beta + ";" + gamma + ";" + this.state.function1 + ";" + this.state.function2 + ";" + this.state.function3 + ";" + this.state.function4 + ";" + milliseconds + "\n");
             //console.log(x + ';' + y + ";" + z + ";" + milliseconds + "\n");
         }
     }
 
     _onChangeInterval200 = () => {
-        Accelerometer.setUpdateInterval(200);  // 16 avant
+        // Change update interval
+        DangerZone.DeviceMotion.setUpdateInterval(200);
         console.log('=== CHANGE interval to 200 ms ===\n');
     }
 
     _onChangeInterval100 = () => {
-        Accelerometer.setUpdateInterval(100);  // 16 avant
+        // Change update interval
+        DangerZone.DeviceMotion.setUpdateInterval(100);
         console.log('=== CHANGE interval to 100 ms ===\n');
     }
 
     _onChangeInterval50 = () => {
-        Accelerometer.setUpdateInterval(50);  // 16 avant
+        // Change update interval
+        DangerZone.DeviceMotion.setUpdateInterval(200);
         console.log('=== CHANGE interval to 50 ms ===\n');
     }
 
@@ -154,7 +170,9 @@ export default class AccelerometerSensor extends React.Component {
 
 
     render() {
-        let { x, y, z } = this.state.accelerometerData;
+        // Get values
+        let { x, y, z } = this.state.acceleration;
+        let { alpha, beta, gamma } = this.state.rotation;
 
         return (
             <View style={styles.container}>
@@ -164,12 +182,17 @@ export default class AccelerometerSensor extends React.Component {
                 </View>
 
                 <View style={styles.sensorContainer}>
-                    <Text>Accéléromètre :</Text>
-                    <Text>x: {round(x)} y: {round(y)} z: {round(z)}</Text>
+                    <Text style={{fontWeight: "bold"}}>Accéléromètre :</Text>
+                    <Text>ax: {round(x)} ay: {round(y)} az: {round(z)}</Text>
+                </View>
+
+                <View style={styles.sensorContainer}>
+                    <Text style={{fontWeight: "bold"}}>Gyroscope :</Text>
+                    <Text>alpha: {round(alpha)} beta: {round(beta)} gamma: {round(gamma)}</Text>
                 </View>
 
                 <View style={styles.textviewContainer}>
-                    <Text>Adresse IP du serveur :</Text>
+                    <Text style={{fontWeight: "bold"}}>Adresse IP du serveur :</Text>
                     <TextInput
                         style={{height: 40}}
                         placeholder="Adresse IP du serveur"

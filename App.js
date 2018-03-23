@@ -18,7 +18,7 @@
 
 // Librairies utilisées
 import React from 'react';
-import { StyleSheet, Text, View, TextInput, Button, Alert } from 'react-native';
+import { Image, StyleSheet, Text, View, TextInput, Button, Alert } from 'react-native';
 import { Accelerometer } from 'expo';
 
 
@@ -159,7 +159,11 @@ export default class AccelerometerSensor extends React.Component {
         return (
             <View style={styles.container}>
 
-                <View style={styles.sensor}>
+                <View style={styles.logoContainer}>
+                    <Image source={require("./assets/logo_lycee.png")} />
+                </View>
+
+                <View style={styles.sensorContainer}>
                     <Text>Accéléromètre :</Text>
                     <Text>x: {round(x)} y: {round(y)} z: {round(z)}</Text>
                 </View>
@@ -236,6 +240,11 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
     },
+    logoContainer: {
+        //flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     textviewContainer: {
         padding: 10,
         marginTop: 15,
@@ -247,14 +256,15 @@ const styles = StyleSheet.create({
         padding: 10,
     },
     button: {
-        flex: 1,
+        //flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#eee',
         padding: 10,
     },
-    sensor: {
+    sensorContainer: {
         marginTop: 15,
         paddingHorizontal: 10,
     },
+
 });

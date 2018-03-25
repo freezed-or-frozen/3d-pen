@@ -20,7 +20,6 @@
 import React from 'react';
 import { Image, StyleSheet, Text, View, TextInput, Button, Alert } from 'react-native';
 import { Accelerometer, Gyroscope, DangerZone } from 'expo';
-//import { DeviceMotion } from 'expo.DangerZone';
 
 
 // Classe de l'application
@@ -31,10 +30,12 @@ export default class MagicPencil extends React.Component {
 
         this.state = {
             acceleration: {},
+            accelerationIncludingGravity: {},
             rotation: {},
             ipAddress: '192.168.0.11',
             connected: false,
             sendingData: false,
+            includingGravity: true,
             function1: 0,
             function2: 0,
             function3: 0,
@@ -60,6 +61,7 @@ export default class MagicPencil extends React.Component {
             // Update motionData state
             this.setState({
                 acceleration: motionData.acceleration,
+                accelerationIncludingGravity: motionData.accelerationIncludingGravity,
                 rotation: motionData.rotation
             });
             //console.log(motionData);
@@ -105,8 +107,13 @@ export default class MagicPencil extends React.Component {
 
     _sendAccelerometerData = () => {
         // Grab data in variables
-        let { x, y, z } = this.state.acceleration;
+        let { x, y, z } = this.state.accelerationIncludingGravity;
         let { alpha, beta, gamma } = this.state.rotation;
+        if (this.state.includingGravity == false) {
+            x = this.state.acceleration.x;
+            y = this.state.acceleration.y;
+            z = this.state.acceleration.z;
+        }
 
         // Get the time
         var milliseconds = (new Date).getTime();
@@ -168,10 +175,25 @@ export default class MagicPencil extends React.Component {
         }
     }
 
+    _includeGravity = () => {
+        this.setState({includingGravity: true});
+    }
+
+    _excludeGravity = () => {
+        this.setState({includingGravity: false});
+    }
+
 
     render() {
         // Get values
-        let { x, y, z } = this.state.acceleration;
+        let { x, y, z} = this.state.accelerationIncludingGravity;
+        let labelAcceleration = "Accéléromètre (avec la gravité):";
+        if (this.state.includingGravity == false) {
+            labelAcceleration = "Accéléromètre (sans la gravité):";
+            x = this.state.acceleration.x;
+            y = this.state.acceleration.y;
+            z = this.state.acceleration.z;
+        }
         let { alpha, beta, gamma } = this.state.rotation;
 
         return (
@@ -182,7 +204,7 @@ export default class MagicPencil extends React.Component {
                 </View>
 
                 <View style={styles.sensorContainer}>
-                    <Text style={{fontWeight: "bold"}}>Accéléromètre :</Text>
+                    <Text style={{fontWeight: "bold"}}>{labelAcceleration}</Text>
                     <Text>ax: {round(x)} ay: {round(y)} az: {round(z)}</Text>
                 </View>
 
@@ -243,6 +265,17 @@ export default class MagicPencil extends React.Component {
                     <Button
                         onPress={this._onFct4}
                         title="FCT4"
+                    />
+                </View>
+
+                <View style={styles.buttonContainer}>
+                    <Button
+                        onPress={this._includeGravity}
+                        title="Avec gravité"
+                    />
+                    <Button
+                        onPress={this._excludeGravity}
+                        title="Sans gravité"
                     />
                 </View>
             </View>

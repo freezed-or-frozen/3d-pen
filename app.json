@@ -4,7 +4,7 @@
     "description": "Draw in 3D using your smartphone as a 3DPen",
     "slug": "3DPen",
     "privacy": "public",
-    "sdkVersion": "25.0.0",
+    "sdkVersion": "32.0.0",
     "platforms": ["ios", "android"],
     "version": "1.0.1",
     "orientation": "portrait",
@@ -15,7 +15,11 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
-    }
+      "supportsTablet": true,
+      "bundleIdentifier": "fr.thelittlewoodstudio.pen",
+    },
+    "android": {
+      "package": "fr.thelittlewoodstudio.pen",
+    },
   }
 }
